@@ -21,13 +21,9 @@ gulp.task('fonts', function() {
   .pipe(gulp.dest(config.publicDir + '/stylesheets'));
 });
 
-// TODO: concatenate & uglify
 gulp.task('javascripts', function() {
-  // vendor
+  // vendor (TODO: concatenate & uglify)
   gulp.src(config.jQueryDir + '/dist/jquery.js')
-    .pipe(gulp.dest(config.publicDir + '/javascripts'));
-  // src
-  gulp.src(config.srcDir + '/javascripts/*.js')
     .pipe(gulp.dest(config.publicDir + '/javascripts'));
 });
 
