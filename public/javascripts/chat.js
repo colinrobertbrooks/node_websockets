@@ -44,9 +44,17 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// TODO: proptypes
+	/*
+	  TODO:
+	  - validate proptypes
+	  - style message windows, buttons
+	  - alert user joined/left
+	  - show users connected
+	  - indicate user is typing
+	*/
+
 	var React = __webpack_require__(1);
-	var { render } = __webpack_require__(38);
+	var ReactDOM = __webpack_require__(38);
 
 	const NameModal = React.createClass({
 	  displayName: 'NameModal',
@@ -130,18 +138,17 @@
 	  displayName: 'Message',
 
 	  render: function () {
-	    var { message } = this.props;
 	    return React.createElement(
 	      'li',
 	      null,
 	      React.createElement(
 	        'b',
 	        null,
-	        message.name,
+	        this.props.message.name,
 	        ':'
 	      ),
 	      ' ',
-	      message.text
+	      this.props.message.text
 	    );
 	  }
 	});
@@ -150,14 +157,13 @@
 	  displayName: 'MessageWindow',
 
 	  render: function () {
-	    var { messages } = this.props;
 	    return React.createElement(
 	      'ul',
 	      {
 	        className: 'list-unstyled',
 	        id: 'js-messages-container'
 	      },
-	      messages.map(function (message, i) {
+	      this.props.messages.map(function (message, i) {
 	        return React.createElement(Message, {
 	          key: i,
 	          message: message
@@ -183,7 +189,6 @@
 	    }
 	  },
 	  render: function () {
-	    var { onOutgoingMessage } = this.props;
 	    return React.createElement(
 	      'div',
 	      { className: 'input-group' },
@@ -214,13 +219,12 @@
 	    return {
 	      messages: [],
 	      modalVisible: true,
-	      name: 'Bob',
+	      name: null,
 	      socket: io()
 	    };
 	  },
 	  componentDidMount: function () {
-	    var { socket } = this.state;
-	    socket.on('chat message', this.handleIncomingMessage);
+	    this.state.socket.on('chat message', this.handleIncomingMessage);
 	  },
 	  _handleModalVisibility: function (boolean) {
 	    this.setState({
@@ -228,24 +232,25 @@
 	    });
 	  },
 	  _handleSubmitUserName: function (name) {
-	    this.setState({ name });
+	    this.setState({
+	      name: name
+	    });
 	  },
 	  handleIncomingMessage: function (message) {
-	    console.log('Incoming: ', message);
-	    var { messages } = this.state;
+	    var messages = this.state.messages;
 	    messages.push(message);
-	    this.setState({ messages });
+	    this.setState({
+	      messages: messages
+	    });
 	  },
-	  _handleOutgoingMessage(text) {
-	    var { messages, name, socket } = this.state;
+	  _handleOutgoingMessage: function (text) {
 	    var message = {
-	      name: name,
+	      name: this.state.name,
 	      text: text
 	    };
-	    socket.emit('chat message', message);
+	    this.state.socket.emit('chat message', message);
 	  },
 	  render: function () {
-	    var { messages, modalVisible, name } = this.state;
 	    return React.createElement(
 	      'div',
 	      { className: 'container' },
@@ -266,7 +271,7 @@
 	          'div',
 	          { className: 'col-md-8' },
 	          React.createElement(MessageWindow, {
-	            messages: messages
+	            messages: this.state.messages
 	          }),
 	          React.createElement(MessageInput, {
 	            onOutgoingMessage: this._handleOutgoingMessage
@@ -274,17 +279,17 @@
 	        ),
 	        React.createElement('div', { className: 'col-md-2' })
 	      ),
-	      modalVisible ? React.createElement(NameModal, {
+	      this.state.modalVisible ? React.createElement(NameModal, {
 	        onSubmitUserName: this._handleSubmitUserName,
-	        onModalClose: () => {
+	        onModalClose: function () {
 	          this._handleModalVisibility(false);
-	        }
+	        }.bind(this)
 	      }) : null
 	    );
 	  }
 	});
 
-	render(React.createElement(App, null), document.getElementById('app'));
+	ReactDOM.render(React.createElement(App, null), document.getElementById('app'));
 
 /***/ },
 /* 1 */

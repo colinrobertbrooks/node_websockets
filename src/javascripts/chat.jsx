@@ -8,7 +8,7 @@
 */
 
 var React = require('react');
-var {render} = require('react-dom');
+var ReactDOM = require('react-dom');
 
 const NameModal = React.createClass({
   propTypes: {
@@ -74,20 +74,18 @@ const NameModal = React.createClass({
 
 var Message = React.createClass({
   render: function() {
-    var {message} = this.props;
-    return <li><b>{message.name}:</b> {message.text}</li>;
+    return <li><b>{this.props.message.name}:</b> {this.props.message.text}</li>;
   }
 });
 
 var MessageWindow = React.createClass({
   render: function() {
-    var {messages} = this.props;
     return (
       <ul
         className="list-unstyled"
         id="js-messages-container"
       >
-        {messages.map(function(message, i) {
+        {this.props.messages.map(function(message, i) {
           return (
             <Message
               key={i}
@@ -114,7 +112,6 @@ var MessageInput = React.createClass({
     }
   },
   render: function() {
-    var {onOutgoingMessage} = this.props;
     return (
       <div className="input-group">
         <input
@@ -146,8 +143,7 @@ var App = React.createClass({
     };
   },
   componentDidMount: function() {
-    var {socket} = this.state;
-    socket.on('chat message', this.handleIncomingMessage);
+    this.state.socket.on('chat message', this.handleIncomingMessage);
   },
   _handleModalVisibility: function(boolean) {
     this.setState({
@@ -155,23 +151,25 @@ var App = React.createClass({
     });
   },
   _handleSubmitUserName: function(name) {
-    this.setState({ name });
+    this.setState({
+      name: name
+    });
   },
   handleIncomingMessage: function(message) {
-    var {messages} = this.state;
+    var messages = this.state.messages;
     messages.push(message);
-    this.setState({ messages });
+    this.setState({
+      messages: messages
+    });
   },
-  _handleOutgoingMessage(text) {
-    var {messages, name, socket} = this.state;
+  _handleOutgoingMessage: function(text) {
     var message = {
-      name: name,
+      name: this.state.name,
       text: text
     };
-    socket.emit('chat message', message);
+    this.state.socket.emit('chat message', message);
   },
   render: function() {
-    var {messages, modalVisible, name} = this.state;
     return (
       <div className="container">
         <div className="row text-center">
@@ -181,7 +179,7 @@ var App = React.createClass({
           <div className="col-md-2"></div>
           <div className="col-md-8">
             <MessageWindow
-              messages={messages}
+              messages={this.state.messages}
             />
             <MessageInput
               onOutgoingMessage={this._handleOutgoingMessage}
@@ -189,10 +187,10 @@ var App = React.createClass({
           </div>
           <div className="col-md-2"></div>
         </div>
-        {modalVisible ?
+        {this.state.modalVisible ?
           <NameModal
             onSubmitUserName={this._handleSubmitUserName}
-            onModalClose={() => {this._handleModalVisibility(false)}}
+            onModalClose={function() {this._handleModalVisibility(false)}.bind(this)}
           />
         : null}
       </div>
@@ -200,4 +198,4 @@ var App = React.createClass({
   }
 });
 
-render(<App/>, document.getElementById('app'));
+ReactDOM.render(<App/>, document.getElementById('app'));
