@@ -5819,3 +5819,12 @@ button.close {
 
 .modal-backdrop {
   z-index: 1000; }
+
+/* mobile inputs */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .form-control {
+    font-size: 16px; } }
+
+@media (min-width: 768px) {
+  .form-control {
+    font-size: 14px; } }

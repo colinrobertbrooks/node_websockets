@@ -1,0 +1,11 @@
+/* mobile inputs */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .form-control {
+    font-size: 16px;
+  }
+}
+@media (min-width: $screen-sm) {
+  .form-control {
+    font-size: 14px;
+  }
+}

@@ -10,7 +10,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 
-const NameModal = React.createClass({
+var NameModal = React.createClass({
   propTypes: {
     onModalClose: React.PropTypes.func.isRequired
   },

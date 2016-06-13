@@ -56,7 +56,7 @@
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(38);
 
-	const NameModal = React.createClass({
+	var NameModal = React.createClass({
 	  displayName: 'NameModal',
 
 	  propTypes: {
