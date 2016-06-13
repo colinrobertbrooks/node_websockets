@@ -44,48 +44,242 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// load the socket.io-client
-	var socket = io();
-
-	// load react and react-dom
+	// TODO: proptypes
 	var React = __webpack_require__(1);
 	var { render } = __webpack_require__(38);
 
-	// handle outgoing messages
-	$('#js-message-submit-btn').on('click', function () {
-	  handleOutgoingMessage();
-	});
+	const NameModal = React.createClass({
+	  displayName: 'NameModal',
 
-	$('#js-message-input').keypress(function (e) {
-	  if (e.which == 13) {
-	    handleOutgoingMessage();
+	  propTypes: {
+	    onModalClose: React.PropTypes.func.isRequired
+	  },
+	  componentDidMount: function () {
+	    $('#js-name-modal').modal('show');
+	    $('#js-name-modal').on('hidden.bs.modal', this.props.onModalClose);
+	  },
+	  handleSubmit: function () {
+	    var name = $('#js-name-input').val();
+	    if (name) {
+	      $('#js-name-input').val('');
+	      this.props.onSubmitUserName(name);
+	      $('#js-name-modal').modal('hide');
+	    }
+	  },
+	  handleEnterKey: function (e) {
+	    if (e.which == 13) {
+	      this.handleSubmit();
+	    }
+	  },
+	  render: function () {
+	    return React.createElement(
+	      'div',
+	      {
+	        className: 'modal fade',
+	        'data-backdrop': 'static',
+	        'data-keyboard': 'false',
+	        id: 'js-name-modal'
+	      },
+	      React.createElement(
+	        'div',
+	        { className: 'modal-dialog' },
+	        React.createElement(
+	          'div',
+	          { className: 'modal-content text-center' },
+	          React.createElement(
+	            'div',
+	            { className: 'modal-header' },
+	            React.createElement(
+	              'h3',
+	              { className: 'modal-title' },
+	              'Welcome'
+	            )
+	          ),
+	          React.createElement(
+	            'div',
+	            { className: 'modal-body' },
+	            React.createElement(
+	              'div',
+	              { className: 'input-group' },
+	              React.createElement('input', {
+	                className: 'form-control',
+	                id: 'js-name-input',
+	                placeholder: 'Type your name to enter chat...',
+	                type: 'text',
+	                onKeyUp: this.handleEnterKey
+	              }),
+	              React.createElement(
+	                'span',
+	                {
+	                  className: 'input-group-addon',
+	                  title: 'Submit name',
+	                  onClick: this.handleSubmit
+	                },
+	                'Submit'
+	              )
+	            )
+	          ),
+	          React.createElement('div', { className: 'modal-footer' })
+	        )
+	      )
+	    );
 	  }
 	});
 
-	function handleOutgoingMessage() {
-	  var messageText = $('#js-message-input').val();
-	  if (messageText) {
-	    socket.emit('chat message', messageText);
-	    $('#js-message-input').val('');
-	    var test = 'test';
-	    var string = `This is a ${ test }`;
-	  }
-	}
+	var Message = React.createClass({
+	  displayName: 'Message',
 
-	// handle incoming messages
-	socket.on('chat message', function (msg) {
-	  $('#js-messages-container').append($('<li>').text(msg));
+	  render: function () {
+	    var { message } = this.props;
+	    return React.createElement(
+	      'li',
+	      null,
+	      React.createElement(
+	        'b',
+	        null,
+	        message.name,
+	        ':'
+	      ),
+	      ' ',
+	      message.text
+	    );
+	  }
 	});
 
-	// react test
+	var MessageWindow = React.createClass({
+	  displayName: 'MessageWindow',
+
+	  render: function () {
+	    var { messages } = this.props;
+	    return React.createElement(
+	      'ul',
+	      {
+	        className: 'list-unstyled',
+	        id: 'js-messages-container'
+	      },
+	      messages.map(function (message, i) {
+	        return React.createElement(Message, {
+	          key: i,
+	          message: message
+	        });
+	      })
+	    );
+	  }
+	});
+
+	var MessageInput = React.createClass({
+	  displayName: 'MessageInput',
+
+	  handleSubmit: function () {
+	    var text = $('#js-message-input').val();
+	    if (text) {
+	      $('#js-message-input').val('');
+	      this.props.onOutgoingMessage(text);
+	    }
+	  },
+	  handleEnterKey: function (e) {
+	    if (e.which == 13) {
+	      this.handleSubmit();
+	    }
+	  },
+	  render: function () {
+	    var { onOutgoingMessage } = this.props;
+	    return React.createElement(
+	      'div',
+	      { className: 'input-group' },
+	      React.createElement('input', {
+	        className: 'form-control',
+	        id: 'js-message-input',
+	        placeholder: 'Type your message here...',
+	        type: 'text',
+	        onKeyUp: this.handleEnterKey
+	      }),
+	      React.createElement(
+	        'span',
+	        {
+	          className: 'input-group-addon',
+	          title: 'Send message',
+	          onClick: this.handleSubmit
+	        },
+	        React.createElement('i', { className: 'fa fa-comment' })
+	      )
+	    );
+	  }
+	});
+
 	var App = React.createClass({
 	  displayName: 'App',
 
-	  render() {
+	  getInitialState: function () {
+	    return {
+	      messages: [],
+	      modalVisible: true,
+	      name: 'Bob',
+	      socket: io()
+	    };
+	  },
+	  componentDidMount: function () {
+	    var { socket } = this.state;
+	    socket.on('chat message', this.handleIncomingMessage);
+	  },
+	  _handleModalVisibility: function (boolean) {
+	    this.setState({
+	      modalVisible: boolean
+	    });
+	  },
+	  _handleSubmitUserName: function (name) {
+	    this.setState({ name });
+	  },
+	  handleIncomingMessage: function (message) {
+	    console.log('Incoming: ', message);
+	    var { messages } = this.state;
+	    messages.push(message);
+	    this.setState({ messages });
+	  },
+	  _handleOutgoingMessage(text) {
+	    var { messages, name, socket } = this.state;
+	    var message = {
+	      name: name,
+	      text: text
+	    };
+	    socket.emit('chat message', message);
+	  },
+	  render: function () {
+	    var { messages, modalVisible, name } = this.state;
 	    return React.createElement(
-	      'small',
-	      { className: 'text-muted' },
-	      'This is React!'
+	      'div',
+	      { className: 'container' },
+	      React.createElement(
+	        'div',
+	        { className: 'row text-center' },
+	        React.createElement(
+	          'h1',
+	          null,
+	          'Chat'
+	        )
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'row' },
+	        React.createElement('div', { className: 'col-md-2' }),
+	        React.createElement(
+	          'div',
+	          { className: 'col-md-8' },
+	          React.createElement(MessageWindow, {
+	            messages: messages
+	          }),
+	          React.createElement(MessageInput, {
+	            onOutgoingMessage: this._handleOutgoingMessage
+	          })
+	        ),
+	        React.createElement('div', { className: 'col-md-2' })
+	      ),
+	      modalVisible ? React.createElement(NameModal, {
+	        onSubmitUserName: this._handleSubmitUserName,
+	        onModalClose: () => {
+	          this._handleModalVisibility(false);
+	        }
+	      }) : null
 	    );
 	  }
 	});

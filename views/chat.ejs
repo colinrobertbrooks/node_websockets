@@ -1,36 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= title %></title>
     <link rel='stylesheet' href='stylesheets/app.css'/>
     <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css'/>
   </head>
   <body>
-    <div class="container">
-      <div class="row text-center">
-        <div class="col-md-12">
-          <h1><%= header %></h1>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2"></div>
-        <div class="col-md-8">
-          <ul id="js-messages-container" class="list-unstyled"></ul>
-          <div class="input-group">
-            <input type="text" id="js-message-input" class="form-control" placeholder="Type your chat message here...">
-            <span id="js-message-submit-btn" class="input-group-addon">
-              <i class="fa fa-comment"></i>
-            </span>
-          </div>
-        </div>
-        <div class="col-md-2"></div>
-        <div class="col-md-12 text-center">
-          <div id="app"></div>
-        </div>
-      </div>
-    </div>
+    <div id="app"></div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery.js"></script>
+    <script src="/javascripts/bootstrap.js"></script>
     <script src="/javascripts/chat.js"></script>
   </body>
 </html>

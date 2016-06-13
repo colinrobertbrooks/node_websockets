@@ -9,9 +9,11 @@ var config = {
 };
 
 gulp.task('stylesheets', function() {
-  return gulp.src('./css/app.scss')
+  return gulp.src(config.srcDir + '/stylesheets/app.scss')
   .pipe(sass({
-    includePaths: [config.bootstrapDir + '/assets/stylesheets'],
+    includePaths: [
+      config.bootstrapDir + '/assets/stylesheets'
+    ],
   }))
   .pipe(gulp.dest(config.publicDir + '/stylesheets'));
 });
@@ -22,8 +24,10 @@ gulp.task('fonts', function() {
 });
 
 gulp.task('javascripts', function() {
-  // vendor (TODO: concatenate & uglify)
+  // TODO: concatenate and minify
   gulp.src(config.jQueryDir + '/dist/jquery.js')
+    .pipe(gulp.dest(config.publicDir + '/javascripts'));
+  gulp.src(config.bootstrapDir + '/assets/javascripts/bootstrap.js')
     .pipe(gulp.dest(config.publicDir + '/javascripts'));
 });
 
