@@ -5820,6 +5820,54 @@ button.close {
 .modal-backdrop {
   z-index: 1000; }
 
+/* name modal */
+.name-submit-disabled {
+  color: #ccc;
+  cursor: not-allowed; }
+
+.name-submit-enabled {
+  color: #7cba7c;
+  cursor: pointer; }
+
+/* message window */
+.message-window {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-top: 1px solid #ccc;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  height: 350px;
+  margin-bottom: 0px;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-top: 5px;
+  overflow-y: scroll; }
+
+.message-window::-webkit-scrollbar {
+  width: 8px; }
+
+.message-window::-webkit-scrollbar-thumb {
+  background-color: #eee; }
+
+/* message input */
+.message-input {
+  border-top-left-radius: 0px; }
+
+.message-submit {
+  border-top-right-radius: 0px; }
+
+.message-submit-disabled {
+  cursor: not-allowed; }
+
+.message-submit-disabled i {
+  color: #ccc; }
+
+.message-submit-enabled {
+  cursor: pointer; }
+
+.message-submit-enabled i {
+  color: #7cba7c; }
+
 /* mobile inputs */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   .form-control {

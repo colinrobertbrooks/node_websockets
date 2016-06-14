@@ -1,34 +1,36 @@
-/*
-  TODO:
-  - validate proptypes
-  - style message windows, buttons
-  - alert user joined/left
-  - show users connected
-  - indicate user is typing
-*/
-
 var React = require('react');
 var ReactDOM = require('react-dom');
 
 var NameModal = React.createClass({
   propTypes: {
-    onModalClose: React.PropTypes.func.isRequired
+    onModalClose: React.PropTypes.func.isRequired,
+    onSubmitUserName: React.PropTypes.func.isRequired
   },
   componentDidMount: function() {
     $('#js-name-modal').modal('show');
     $('#js-name-modal').on('hidden.bs.modal', this.props.onModalClose);
   },
+  handleTyping: function(e) {
+    if(e.which == 13) {
+      this.handleSubmit();
+    } else {
+      var name = $('#js-name-input').val();
+      if(name) {
+        $('#js-name-submit')
+          .addClass('name-submit-enabled')
+          .removeClass('name-submit-disabled');
+      } else {
+        $('#js-name-submit')
+          .addClass('name-submit-disabled')
+          .removeClass('name-submit-enabled');
+      }
+    }
+  },
   handleSubmit: function() {
     var name = $('#js-name-input').val();
     if(name) {
-      $('#js-name-input').val('');
       this.props.onSubmitUserName(name);
       $('#js-name-modal').modal('hide');
-    }
-  },
-  handleEnterKey: function(e) {
-    if(e.which == 13) {
-      this.handleSubmit();
     }
   },
   render: function() {
@@ -51,12 +53,13 @@ var NameModal = React.createClass({
                 <input
                   className="form-control"
                   id="js-name-input"
-                  placeholder="Type your name to enter chat..."
+                  placeholder="Type your name to enter the chat..."
                   type="text"
-                  onKeyUp={this.handleEnterKey}
+                  onKeyUp={this.handleTyping}
                 />
                 <span
-                  className="input-group-addon"
+                  className="input-group-addon name-submit-disabled"
+                  id="js-name-submit"
                   title="Submit name"
                   onClick={this.handleSubmit}
                 >
@@ -73,16 +76,25 @@ var NameModal = React.createClass({
 });
 
 var Message = React.createClass({
+  propTypes: {
+    message: React.PropTypes.object.isRequired
+  },
   render: function() {
     return <li><b>{this.props.message.name}:</b> {this.props.message.text}</li>;
   }
 });
 
 var MessageWindow = React.createClass({
+  propTypes: {
+    messages: React.PropTypes.arrayOf(React.PropTypes.object).isRequired
+  },
+  componentDidUpdate: function() {
+    $('.message-window').scrollTop($('.message-window')[0].scrollHeight);
+  },
   render: function() {
     return (
       <ul
-        className="list-unstyled"
+        className="list-unstyled message-window"
         id="js-messages-container"
       >
         {this.props.messages.map(function(message, i) {
@@ -99,30 +111,48 @@ var MessageWindow = React.createClass({
 });
 
 var MessageInput = React.createClass({
+  propTypes: {
+    onOutgoingMessage: React.PropTypes.func.isRequired
+  },
+  handleTyping: function(e) {
+    if(e.which == 13) {
+      this.handleSubmit();
+    } else {
+      var text = $('#js-message-input').val();
+      if(text) {
+        $('#js-message-submit')
+          .addClass('message-submit-enabled')
+          .removeClass('message-submit-disabled');
+      } else {
+        $('#js-message-submit')
+          .addClass('message-submit-disabled')
+          .removeClass('message-submit-enabled');
+      }
+    }
+  },
   handleSubmit: function() {
     var text = $('#js-message-input').val();
     if(text) {
       $('#js-message-input').val('');
+      $('#js-message-submit')
+          .addClass('message-submit-disabled')
+          .removeClass('message-submit-enabled');
       this.props.onOutgoingMessage(text);
-    }
-  },
-  handleEnterKey: function(e) {
-    if(e.which == 13) {
-      this.handleSubmit();
     }
   },
   render: function() {
     return (
       <div className="input-group">
         <input
-          className="form-control"
+          className="form-control message-input"
           id="js-message-input"
-          placeholder="Type your message here..."
+          placeholder="Type your chat message here..."
           type="text"
-          onKeyUp={this.handleEnterKey}
+          onKeyUp={this.handleTyping}
         />
         <span
-          className="input-group-addon"
+          className="input-group-addon message-submit message-submit-disabled"
+          id="js-message-submit"
           title="Send message"
           onClick={this.handleSubmit}
         >
@@ -144,15 +174,26 @@ var App = React.createClass({
   },
   componentDidMount: function() {
     this.state.socket.on('chat message', this.handleIncomingMessage);
+    window.onbeforeunload = this.handleUserLeave;
   },
   _handleModalVisibility: function(boolean) {
     this.setState({
       modalVisible: boolean
     });
   },
-  _handleSubmitUserName: function(name) {
+  _handleUserJoin: function(name) {
     this.setState({
       name: name
+    });
+    this.state.socket.emit('chat message', {
+      name: 'System',
+      text: name + ' has joined the chat.'
+    });
+  },
+  handleUserLeave: function() {
+    this.state.socket.emit('chat message', {
+      name: 'System',
+      text: this.state.name + ' has left the chat.'
     });
   },
   handleIncomingMessage: function(message) {
@@ -163,11 +204,10 @@ var App = React.createClass({
     });
   },
   _handleOutgoingMessage: function(text) {
-    var message = {
+    this.state.socket.emit('chat message', {
       name: this.state.name,
       text: text
-    };
-    this.state.socket.emit('chat message', message);
+    });
   },
   render: function() {
     return (
@@ -176,8 +216,8 @@ var App = React.createClass({
           <h1>Chat</h1>
         </div>
         <div className="row">
-          <div className="col-md-2"></div>
-          <div className="col-md-8">
+          <div className="col-md-3"></div>
+          <div className="col-md-6">
             <MessageWindow
               messages={this.state.messages}
             />
@@ -185,11 +225,11 @@ var App = React.createClass({
               onOutgoingMessage={this._handleOutgoingMessage}
             />
           </div>
-          <div className="col-md-2"></div>
+          <div className="col-md-3"></div>
         </div>
         {this.state.modalVisible ?
           <NameModal
-            onSubmitUserName={this._handleSubmitUserName}
+            onSubmitUserName={this._handleUserJoin}
             onModalClose={function() {this._handleModalVisibility(false)}.bind(this)}
           />
         : null}
